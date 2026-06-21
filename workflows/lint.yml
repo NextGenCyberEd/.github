@@ -1,0 +1,23 @@
+name: Lint (Reusable)
+
+# Runs ESLint. Requires a `lint` script in package.json, e.g.
+#   "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        type: string
+        default: "20"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: "npm"
+      - run: npm ci
+      - run: npm run lint
