@@ -1,7 +1,7 @@
 name: Lint (Reusable)
 
-# Runs ESLint. Requires a `lint` script in package.json, e.g.
-#   "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+# Runs ESLint. Supports a subdirectory via working-directory input.
+# Requires a `lint` script in package.json.
 
 on:
   workflow_call:
@@ -9,6 +9,9 @@ on:
       node-version:
         type: string
         default: "20"
+      working-directory:
+        type: string
+        default: "."
 
 jobs:
   lint:
@@ -19,5 +22,8 @@ jobs:
         with:
           node-version: ${{ inputs.node-version }}
           cache: "npm"
+          cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
       - run: npm ci
+        working-directory: ${{ inputs.working-directory }}
       - run: npm run lint
+        working-directory: ${{ inputs.working-directory }}
