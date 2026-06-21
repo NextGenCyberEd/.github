@@ -1,6 +1,6 @@
-# FTSC Security & Data Analytics — Org Workflows
+# Next Gen Cyber Ed — Org Workflows
 
-Central home for reusable GitHub Actions workflows. Every FTSC tool repo calls
+Central home for reusable GitHub Actions workflows. Every NGCE tool repo calls
 these instead of copy-pasting YAML. Update a workflow here once and every repo
 picks it up on its next run.
 
@@ -12,7 +12,7 @@ picks it up on its next run.
 | `build.yml` | `npm ci && npm run build` | PR |
 | `lint.yml` | ESLint (`npm run lint`) | PR |
 | `dependency-audit.yml` | `npm audit` (level: high) | PR + weekly |
-| `semgrep.yml` | SAST + FTSC Supabase rules | PR |
+| `semgrep.yml` | SAST + NGCE Supabase rules | PR |
 
 Custom Semgrep rules (canonical source): `semgrep-rules/supabase.yml`.
 

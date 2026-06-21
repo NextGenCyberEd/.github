@@ -1,6 +1,6 @@
 name: Semgrep SAST (Reusable)
 
-# Static analysis for JS/TS/React plus FTSC custom Supabase rules.
+# Static analysis for JS/TS/React plus NGCE custom Supabase rules.
 #
 # NOTE: the custom Supabase rules live canonically in this repo at
 # semgrep-rules/supabase.yml. They are inlined below so the workflow is
@@ -21,10 +21,10 @@ jobs:
       - name: Install Semgrep
         run: pip install semgrep
 
-      - name: Write FTSC custom Supabase rules
+      - name: Write NGCE custom Supabase rules
         run: |
-          mkdir -p .ftsc-semgrep
-          cat > .ftsc-semgrep/supabase.yml <<'EOF'
+          mkdir -p .NGCE-semgrep
+          cat > .NGCE-semgrep/supabase.yml <<'EOF'
           rules:
             - id: supabase-service-role-in-public-env
               languages: [generic]
@@ -57,5 +57,5 @@ jobs:
             --config p/secrets \
             --config p/typescript \
             --config p/react \
-            --config .ftsc-semgrep/supabase.yml \
+            --config .NGCE-semgrep/supabase.yml \
             --error
