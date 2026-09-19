@@ -54,12 +54,7 @@ jobs:
             echo "::warning::vercel-protection-bypass secret unset; Deployment Protection may block the scan"
             exit 0
           fi
-          host="$(python3 - <<'PY'
-import os
-from urllib.parse import urlparse
-print(urlparse(os.environ["TARGET"]).hostname or "")
-PY
-)"
+          host="$(python3 -c 'import os; from urllib.parse import urlparse; print(urlparse(os.environ["TARGET"]).hostname or "")')"
           if [ -z "$host" ]; then
             echo "::error::Could not parse hostname from target URL"
             exit 1
