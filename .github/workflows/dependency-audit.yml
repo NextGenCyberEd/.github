@@ -12,6 +12,11 @@ on:
       working-directory:
         type: string
         default: "."
+      # When true, skip devDependency advisories (e.g. eslint toolchain).
+      # Use when a high/critical has no upstream patch and only affects build tools.
+      omit-dev:
+        type: boolean
+        default: false
 
 jobs:
   audit:
@@ -23,5 +28,15 @@ jobs:
           node-version: "20"
           cache: "npm"
           cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
-      - run: npm audit --audit-level=${{ inputs.audit-level }}
+      - name: npm audit
         working-directory: ${{ inputs.working-directory }}
+        env:
+          AUDIT_LEVEL: ${{ inputs.audit-level }}
+          OMIT_DEV: ${{ inputs.omit-dev }}
+        run: |
+          set -euo pipefail
+          args=(--audit-level="${AUDIT_LEVEL}")
+          if [ "${OMIT_DEV}" = "true" ]; then
+            args+=(--omit=dev)
+          fi
+          npm audit "${args[@]}"
