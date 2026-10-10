@@ -39,4 +39,30 @@ jobs:
           if [ "${OMIT_DEV}" = "true" ]; then
             args+=(--omit=dev)
           fi
-          npm audit "${args[@]}"
+
+          # Registry occasionally returns 400 Bad Request; retry transient endpoint failures.
+          # Real advisory exits (vulns at/above audit-level) still fail immediately.
+          attempt=1
+          max_attempts=4
+          while true; do
+            set +e
+            out="$(npm audit "${args[@]}" 2>&1)"
+            ec=$?
+            set -e
+            printf '%s\n' "$out"
+            if [ "$ec" -eq 0 ]; then
+              exit 0
+            fi
+            if printf '%s' "$out" | grep -qiE 'audit endpoint returned an error|Bad Request|ECONNRESET|ETIMEDOUT|socket hang up|503|502'; then
+              if [ "$attempt" -ge "$max_attempts" ]; then
+                echo "::error::npm audit registry failed after ${max_attempts} attempts"
+                exit "$ec"
+              fi
+              sleep_for=$((attempt * 15))
+              echo "::warning::npm audit registry error (attempt ${attempt}/${max_attempts}); retrying in ${sleep_for}s"
+              sleep "$sleep_for"
+              attempt=$((attempt + 1))
+              continue
+            fi
+            exit "$ec"
+          done
