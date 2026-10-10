@@ -75,22 +75,6 @@ jobs:
             exit 1
           fi
 
-          # HttpSender attaches bypass on every request. ZAP_AUTH_HEADER alone has
-          # missed spider paths (robots.txt/sitemap → Vercel SSO → Feature-Policy).
-          mkdir -p "$GITHUB_WORKSPACE/.zap"
-          cat > "$GITHUB_WORKSPACE/.zap/vercel-bypass-httpsender.js" <<'EOF'
-          var Sys = Java.type("java.lang.System");
-          function sendingRequest(msg, initiator, helper) {
-            var bypass = Sys.getenv("ZAP_AUTH_HEADER_VALUE");
-            if (bypass === null || bypass.isEmpty()) {
-              return;
-            }
-            msg.getRequestHeader().setHeader("x-vercel-protection-bypass", bypass);
-            msg.getRequestHeader().setHeader("x-vercel-set-bypass-cookie", "true");
-          }
-          function responseReceived(msg, initiator, helper) {}
-          EOF
-
           echo "enabled=true" >> "$GITHUB_OUTPUT"
           echo "site=$host" >> "$GITHUB_OUTPUT"
 
@@ -99,6 +83,7 @@ jobs:
         env:
           ZAP_AUTH_HEADER: ${{ steps.bypass.outputs.enabled == 'true' && 'x-vercel-protection-bypass' || '' }}
           ZAP_AUTH_HEADER_VALUE: ${{ secrets.vercel-protection-bypass }}
+          # Match all *.vercel.app preview hosts (substring match).
           ZAP_AUTH_HEADER_SITE: ${{ steps.bypass.outputs.enabled == 'true' && 'vercel.app' || '' }}
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -108,7 +93,4 @@ jobs:
           fail_action: ${{ inputs.fail-action }}
           allow_issue_writing: false
           artifact_name: ${{ inputs.artifact-name }}
-          # Literal quotes required so -z receives one arg (action exec word-splits).
-          cmd_options: >-
-            ${{ inputs.cmd-options }}
-            ${{ steps.bypass.outputs.enabled == 'true' && '-z "-config script.scripts(0).name=vercel-bypass -config script.scripts(0).engine=ECMAScript : Graal.js -config script.scripts(0).type=httpsender -config script.scripts(0).enabled=true -config script.scripts(0).file=/zap/wrk/.zap/vercel-bypass-httpsender.js"' || '' }}
+          cmd_options: ${{ inputs.cmd-options }}
